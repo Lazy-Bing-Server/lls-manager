@@ -27,15 +27,6 @@ public class Config extends AbstractConfig<Config.ConfigData> {
         return config.serverGroup;
     }
 
-    public boolean getMinimapWorldSync() {
-        return config.minimapWorldSync;
-    }
-
-    public boolean setMinimapWorldSync(boolean minimapWorldSync) {
-        config.minimapWorldSync = minimapWorldSync;
-        return save();
-    }
-
     public boolean getShowAllPlayerInTabList() {
         return config.showAllPlayerInTabList;
     }
@@ -167,8 +158,7 @@ public class Config extends AbstractConfig<Config.ConfigData> {
         private String defaultChannel = LlsPlayer.SERVER;
         // 离线认证服务器名字
         private String authServerName = "lls-auth";
-        // 启用小地图同步
-        private boolean minimapWorldSync = false;
+
 
 
         public ConfigData() {

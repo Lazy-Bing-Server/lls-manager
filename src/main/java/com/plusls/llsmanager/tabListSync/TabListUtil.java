@@ -3,53 +3,62 @@ package com.plusls.llsmanager.tabListSync;
 import com.plusls.llsmanager.LlsManager;
 import com.plusls.llsmanager.util.TextUtil;
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.player.TabList;
 import com.velocitypowered.api.proxy.player.TabListEntry;
-import com.velocitypowered.api.util.GameProfile;
-import com.velocitypowered.proxy.protocol.packet.PlayerListItem;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
-import java.util.Map;
 import java.util.Objects;
 
 public class TabListUtil {
-    public static TabListEntry getTabListEntry(TabList tabList, PlayerListItem.Item item) {
+    public static TabListEntry getTabListEntry(TabList tabList, Player player) {
         return TabListEntry.builder()
                 .tabList(tabList)
-                .profile(new GameProfile(Objects.requireNonNull(item.getUuid()), item.getName(), item.getProperties()))
-                .displayName(item.getDisplayName())
-                .latency(item.getLatency())
-                .gameMode(item.getGameMode())
+                .profile(player.getGameProfile())
+                .displayName(getRegularDisplayName(player))
+                .latency(Long.valueOf(player.getPing()).intValue())
+                .gameMode(0)
                 .build();
     }
 
-    public static void updateTabListEntry(TabListEntry tabListEntry, PlayerListItem.Item item, Player player, Player itemPlayer) {
+    public static Component getServerDisplayName(Player player, ServerConnection currentServer) {
+        return TextUtil.getUsernameComponentWithoutEvent(player.getGameProfile().getName())
+                .append(Component.text(" ["))
+                .append(TextUtil.getServerNameComponent(currentServer.getServerInfo().getName()))
+                .append(Component.text(']'));
+    }
+
+    public static Component getRegularDisplayName(Player player) {
+        return Component.text(player.getGameProfile().getName());
+    }
+
+    public static void updateTabListEntry(TabListEntry tabListEntry, Player player, Player itemPlayer) {
         Component component = null;
         if (tabListEntry.getDisplayNameComponent().isPresent()) {
             component = tabListEntry.getDisplayNameComponent().get();
         }
 
         if (inSameServer(player, itemPlayer)) {
-            if (component != item.getDisplayName()) {
-                tabListEntry.setDisplayName(item.getDisplayName());
+            if (!Objects.equals(component, getRegularDisplayName(itemPlayer))) {
+                tabListEntry.setDisplayName(getRegularDisplayName(itemPlayer));
             }
         } else {
             itemPlayer.getCurrentServer().ifPresent(
-                    serverConnection -> tabListEntry.setDisplayName(TextUtil.getUsernameComponent(item.getName())
-                            .append(Component.text(" ["))
-                            .append(TextUtil.getServerNameComponent(serverConnection.getServerInfo().getName()))
-                            .append(Component.text("]")))
+                    serverConnection -> tabListEntry.setDisplayName(getServerDisplayName(itemPlayer, serverConnection))
             );
         }
 
-        if (tabListEntry.getLatency() != item.getLatency()) {
-            tabListEntry.setLatency(item.getLatency());
+        int latency = Long.valueOf(itemPlayer.getPing()).intValue();
+        if (tabListEntry.getLatency() != latency) {
+            tabListEntry.setLatency(latency);
         }
 
-        if (tabListEntry.getGameMode() != item.getGameMode()) {
-            tabListEntry.setGameMode(item.getGameMode());
+        if (!inSameServer(player, itemPlayer)) {
+            if (tabListEntry.getGameMode() != 0) {
+                tabListEntry.setGameMode(0);
+            }
         }
-
     }
 
     private static boolean inSameServer(Player player1, Player player2) {
@@ -67,16 +76,16 @@ public class TabListUtil {
     // 已知，若是服务器存在同名玩家不使用 velocity 登陆会出现 bug，比如存在多个代理
     // 或者 carpet 假人使用了 shadow
     // TODO 鉴权，未登录玩家不能看到全服列表
-    public static void updateTabList(LlsManager llsManager, PlayerListItem playerListItem) {
-        Map<String, PlayerListItem.Item> currentItems = llsManager.injector.getInstance(TabListSyncHandler.class).currentItems;
+    // Yuki note: execute from plugin event instead of packet 2023.2.18
+    public static void updateTabList(LlsManager llsManager) {
 
-        synchronized (llsManager.injector.getInstance(TabListSyncHandler.class).currentItems) {
-            for (PlayerListItem.Item item : playerListItem.getItems()) {
+        // synchronized (llsManager.injector.getInstance(TabListSyncHandler.class).currentItems) {
+            /* for (LegacyPlayerListItem.Item item : playerListItem.getItems()) {
                 String name = null;
                 if (!item.getName().equals("")) {
                     name = item.getName();
                 } else {
-                    for (Map.Entry<String, PlayerListItem.Item> entry : currentItems.entrySet()) {
+                    for (Map.Entry<String, LegacyPlayerListItem.Item> entry : currentItems.entrySet()) {
                         if (Objects.equals(item.getUuid(), entry.getValue().getUuid())) {
                             name = entry.getKey();
                             break;
@@ -88,57 +97,54 @@ public class TabListUtil {
                     continue;
                 }
                 switch (playerListItem.getAction()) {
-                    case PlayerListItem.ADD_PLAYER:
+                    case LegacyPlayerListItem.ADD_PLAYER:
                         currentItems.put(name, item);
                         break;
-                    case PlayerListItem.UPDATE_GAMEMODE:
+                    case LegacyPlayerListItem.UPDATE_GAMEMODE:
                         Objects.requireNonNull(currentItems.get(name)).setGameMode(item.getGameMode());
                         break;
-                    case PlayerListItem.UPDATE_LATENCY:
+                    case LegacyPlayerListItem.UPDATE_LATENCY:
                         Objects.requireNonNull(currentItems.get(name)).setLatency(item.getLatency());
                         break;
-                    case PlayerListItem.UPDATE_DISPLAY_NAME:
+                    case LegacyPlayerListItem.UPDATE_DISPLAY_NAME:
                         Objects.requireNonNull(currentItems.get(name)).setDisplayName(item.getDisplayName());
                         break;
-                    case PlayerListItem.REMOVE_PLAYER:
+                    case LegacyPlayerListItem.REMOVE_PLAYER:
                         break;
                     default:
                         throw new UnsupportedOperationException("Unknown action " + playerListItem.getAction());
                 }
-            }
+            } */
 
-            for (Player player : llsManager.server.getAllPlayers()) {
-                TabList tabList = player.getTabList();
-                // 添加缺失的  tabListEntry
-                for (Map.Entry<String, PlayerListItem.Item> entry : currentItems.entrySet()) {
-                    // tabList 不处理自己
-                    if (!entry.getKey().equals(player.getGameProfile().getName())) {
+        for (Player toPlayer : llsManager.server.getAllPlayers()) {
+            TabList tabList = toPlayer.getTabList();
+            // 添加缺失的  tabListEntry
+            for (Player entryPlayer : llsManager.server.getAllPlayers()) {
+                // tabList 不处理自己
+                if (!entryPlayer.getGameProfile().getName().equals(toPlayer.getGameProfile().getName())) {
 
-                        boolean shouldAdd = true;
-                        for (TabListEntry tabListEntry : tabList.getEntries()) {
-                            if (tabListEntry.getProfile().getName().equals(entry.getKey())) {
-                                shouldAdd = false;
-                                break;
-                            }
-                        }
-                        if (shouldAdd) {
-                            tabList.addEntry(TabListUtil.getTabListEntry(tabList, entry.getValue()));
+                    boolean shouldAdd = true;
+                    for (TabListEntry tabListEntry : tabList.getEntries()) {
+                        if (tabListEntry.getProfile().getName().equals(entryPlayer.getGameProfile().getName())) {
+                            shouldAdd = false;
+                            break;
                         }
                     }
-                }
-                // 更新 tabListEntry
-                for (TabListEntry tabListEntry : tabList.getEntries()) {
-                    llsManager.server.getPlayer(tabListEntry.getProfile().getName()).ifPresent(itemPlayer -> {
-                        if (player != itemPlayer) {
-                            updateTabListEntry(tabListEntry, currentItems.get(tabListEntry.getProfile().getName()), player, itemPlayer);
-                        }
-                    });
+                    if (shouldAdd) {
+                        tabList.addEntry(TabListUtil.getTabListEntry(tabList, entryPlayer));
+                    }
                 }
             }
+            // 更新 tabListEntry
+            for (TabListEntry tabListEntry : tabList.getEntries()) {
+                llsManager.server.getPlayer(tabListEntry.getProfile().getName()).ifPresentOrElse(
+                        itemPlayer -> {
+                            updateTabListEntry(tabListEntry, toPlayer, itemPlayer);
+                        },
+                        () -> tabList.removeEntry(tabListEntry.getProfile().getId())
+                );
+            }
         }
-        if (playerListItem.getAction() == PlayerListItem.REMOVE_PLAYER) {
-            // 玩家只是切换了服务器，并没有离开游戏
-            playerListItem.getItems().removeIf(item -> llsManager.server.getPlayer(item.getName()).isPresent());
-        }
+        //}
     }
 }

@@ -16,14 +16,14 @@ plugins {
 group = 'com.plusls'
 version = project.plugin_version
 
-sourceCompatibility = '16'
-targetCompatibility = '16'
+sourceCompatibility = '17'
+targetCompatibility = '17'
 
 repositories {
     mavenCentral()
     maven {
-        name = 'velocitypowered-repo'
-        url = 'https://repo.velocitypowered.com/releases/'
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
     }
     maven {
         name = 'minecraft-libraries'

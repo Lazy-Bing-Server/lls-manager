@@ -15,7 +15,6 @@ import com.plusls.llsmanager.handler.DisconnectEventHandler;
 import com.plusls.llsmanager.handler.PlayerChatEventHandler;
 import com.plusls.llsmanager.handler.PlayerChooseInitialServerEventHandler;
 import com.plusls.llsmanager.handler.ServerConnectedEventHandler;
-import com.plusls.llsmanager.minimapWorldSync.MinimapWorldSyncHandler;
 import com.plusls.llsmanager.offlineAuth.OfflineAuthHandler;
 import com.plusls.llsmanager.seen.SeenHandler;
 import com.plusls.llsmanager.serverGroup.LlsServerGroupCommand;
@@ -159,7 +158,6 @@ public class LlsManager {
         registerTranslations();
         SeenHandler.init(this);
         TabListSyncHandler.init(this);
-        MinimapWorldSyncHandler.init(this);
         WhitelistHandler.init(this);
         OfflineAuthHandler.init(this);
         commandManager.register(injector.getInstance(LlsServerGroupCommand.class).createBrigadierCommand());
@@ -265,7 +263,7 @@ public class LlsManager {
             e.printStackTrace();
             throw new IllegalStateException(e);
         }
-        GlobalTranslator.get().addSource(translationRegistry);
+        GlobalTranslator.translator().addSource(translationRegistry);
     }
 
     @NotNull

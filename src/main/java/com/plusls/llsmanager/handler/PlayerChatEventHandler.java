@@ -9,10 +9,12 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import org.slf4j.Logger;
 
 public class PlayerChatEventHandler implements EventHandler<PlayerChatEvent> {
 
     private static LlsManager llsManager;
+    private static Logger chatLogger;
 
     public static void init(LlsManager llsManager) {
         llsManager.server.getEventManager().register(llsManager, PlayerChatEvent.class, new PlayerChatEventHandler());
@@ -32,6 +34,7 @@ public class PlayerChatEventHandler implements EventHandler<PlayerChatEvent> {
         LlsPlayer llsPlayer = llsManager.getLlsPlayer(player);
 
         String channel = llsPlayer.getChannel();
+
         if (!llsManager.config.getBridgeMessageChannel().contains(channel)) {
             return;
         }
