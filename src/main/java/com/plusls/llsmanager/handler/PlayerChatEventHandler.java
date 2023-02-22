@@ -9,12 +9,10 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import org.slf4j.Logger;
 
 public class PlayerChatEventHandler implements EventHandler<PlayerChatEvent> {
 
     private static LlsManager llsManager;
-    private static Logger chatLogger;
 
     public static void init(LlsManager llsManager) {
         llsManager.server.getEventManager().register(llsManager, PlayerChatEvent.class, new PlayerChatEventHandler());
@@ -24,13 +22,18 @@ public class PlayerChatEventHandler implements EventHandler<PlayerChatEvent> {
 
     @Override
     public void execute(PlayerChatEvent event) {
+        Player player = event.getPlayer();
+        String message = event.getMessage();
+        String username = player.getUsername();
+
+        if (llsManager.config.getShowPlayerChatInConsole()) {
+            player.getCurrentServer().ifPresent((serverConnection) -> {
+                llsManager.logger.info(String.format("[%s] <%s> %s", serverConnection.getServerInfo().getName(), username, message));
+            });
+        }
         if (!llsManager.config.getBridgeChatMessage()) {
             return;
         }
-        Player player = event.getPlayer();
-        String username = player.getUsername();
-        String message = event.getMessage();
-
         LlsPlayer llsPlayer = llsManager.getLlsPlayer(player);
 
         String channel = llsPlayer.getChannel();

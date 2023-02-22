@@ -122,6 +122,10 @@ public class Config extends AbstractConfig<Config.ConfigData> {
         return config.joinMessageChannelList.add(channel) && save();
     }
 
+    public boolean getShowPlayerChatInConsole() {
+        return config.showAllPlayerInTabList;
+    }
+
     public boolean getWhitelist() {
         return config.whitelist;
     }
@@ -144,6 +148,8 @@ public class Config extends AbstractConfig<Config.ConfigData> {
         private final ConcurrentHashMap<String, ConcurrentSkipListSet<String>> serverGroup = new ConcurrentHashMap<>();
         // 是否在 TabList 显示子服玩家
         private boolean showAllPlayerInTabList = false;
+        // 是否在控制台中显示聊天信息
+        private boolean showPlayerChatInConsole = false;
         // 是否同步聊天信息
         private boolean bridgeChatMessage = false;
         // 是否同步玩家加入信息

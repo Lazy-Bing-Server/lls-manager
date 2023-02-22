@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.plusls.llsmanager.command.AlertRawCommand;
 import com.plusls.llsmanager.command.LlsChannelCommand;
 import com.plusls.llsmanager.command.LlsCreatePlayerCommand;
 import com.plusls.llsmanager.command.LlsPlayerCommand;
@@ -170,6 +171,7 @@ public class LlsManager {
         LlsChannelCommand.register(this);
         LlsPlayerCommand.register(this);
         LlsCreatePlayerCommand.register(this);
+        AlertRawCommand.register(this);
 
         logger.info("Lls-Manager load success!");
     }

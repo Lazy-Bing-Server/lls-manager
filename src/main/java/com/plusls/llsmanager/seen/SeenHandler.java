@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Singleton
 public class SeenHandler {
-
+    // TODO filter json suffix
     @Inject
     public LlsManager llsManager;
 
