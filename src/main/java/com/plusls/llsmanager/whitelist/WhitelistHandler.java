@@ -3,18 +3,13 @@ package com.plusls.llsmanager.whitelist;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.plusls.llsmanager.LlsManager;
-import com.plusls.llsmanager.data.LlsPlayer;
-import com.plusls.llsmanager.util.LoadPlayerFailException;
-import com.plusls.llsmanager.util.PlayerNotFoundException;
 import com.velocitypowered.api.event.PostOrder;
+import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.PreLoginEvent;
-import com.velocitypowered.api.event.player.ServerPreConnectEvent;
-import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.util.GameProfile;
 
-import java.util.Set;
+import java.util.UUID;
 
 @Singleton
 public class WhitelistHandler {
@@ -26,9 +21,28 @@ public class WhitelistHandler {
         llsManager.commandManager.register(llsManager.injector.getInstance(LlsWhitelistCommand.class).createBrigadierCommand());
     }
 
-    @Subscribe(order = PostOrder.EARLY)
+    @Subscribe(order =  PostOrder.EARLY)
+    public void onLogin(LoginEvent event) {
+        if (!event.getResult().isAllowed()) {
+            return;
+        }
+        if (!llsManager.config.getWhitelist()) {
+            return;
+        }
+        GameProfile profile = event.getPlayer().getGameProfile();
+        UUID uuid = profile.getId();
+        if (llsManager.lbsWhiteList.isBlackListEnabled() && llsManager.lbsWhiteList.isPlayerBlacklisted(uuid)) {
+            event.setResult(ResultedEvent.ComponentResult.denied(llsManager.lbsWhiteList.getPlayerBannedReason(uuid)));
+            return;
+        }
+        if (llsManager.lbsWhiteList.isWhiteListEnabled() && !llsManager.lbsWhiteList.isPlayerWhitelisted(uuid)) {
+            event.setResult(ResultedEvent.ComponentResult.denied(llsManager.lbsWhiteList.getWhiteListBlockReason()));
+        }
+    }
+
+/*    @Subscribe(order = PostOrder.EARLY)
     public void onPreLogin(PreLoginEvent event) {
-        // 如果别的插件阻止了，那就不需要做检查了
+        // 如果别的插件阻止了，那就不查了需要做检
         if (!event.getResult().isAllowed()) {
             return;
         }
@@ -54,7 +68,7 @@ public class WhitelistHandler {
 
     }
 
-    private boolean checkServer(LlsPlayer llsPlayer, String serverName) {
+/*    private boolean checkServer(LlsPlayer llsPlayer, String serverName) {
         Set<String> whitelistServerList = llsPlayer.getWhitelistServerList();
         if (whitelistServerList.contains(serverName)) {
             return true;
@@ -92,5 +106,5 @@ public class WhitelistHandler {
             }
         }
     }
-
+*/
 }

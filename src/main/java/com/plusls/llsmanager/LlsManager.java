@@ -11,6 +11,7 @@ import com.plusls.llsmanager.command.LlsChannelCommand;
 import com.plusls.llsmanager.command.LlsCreatePlayerCommand;
 import com.plusls.llsmanager.command.LlsPlayerCommand;
 import com.plusls.llsmanager.data.Config;
+import com.plusls.llsmanager.data.LBSWhiteList;
 import com.plusls.llsmanager.data.LlsPlayer;
 import com.plusls.llsmanager.handler.DisconnectEventHandler;
 import com.plusls.llsmanager.handler.PlayerChatEventHandler;
@@ -89,6 +90,8 @@ public class LlsManager {
     public Path dataFolderPath;
     @Inject
     public Injector injector;
+
+    public LBSWhiteList lbsWhiteList;
     public Config config;
 
     // 所有玩家，包含不在线的玩家
@@ -211,6 +214,14 @@ public class LlsManager {
         }
         // 同步配置文件为最新的
         config.save();
+
+        lbsWhiteList = new LBSWhiteList(dataFolderPath);
+        lbsWhiteList.load();
+        if (!config.load()) {
+            logger.error("Lbs-Manager load whitelist fail!");
+            throw new IllegalStateException("Lls-Manager init fail.");
+        }
+        lbsWhiteList.save();
 
         // 初始化用户列表
         try {

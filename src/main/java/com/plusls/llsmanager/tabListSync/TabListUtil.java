@@ -7,11 +7,20 @@ import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.player.TabList;
 import com.velocitypowered.api.proxy.player.TabListEntry;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 
 public class TabListUtil {
+    public static final HashSet<Player> lastLeftPlayers = new HashSet<>();
+
+    public static void updateLastLeftPlayer(Player player) {
+        synchronized (lastLeftPlayers){
+            lastLeftPlayers.add(player);
+        }
+    }
+
     public static TabListEntry getTabListEntry(TabList tabList, Player player) {
         return TabListEntry.builder()
                 .tabList(tabList)
@@ -50,7 +59,7 @@ public class TabListUtil {
         }
 
         int latency = Long.valueOf(itemPlayer.getPing()).intValue();
-        if (tabListEntry.getLatency() != latency) {
+        if (tabListEntry.getLatency() != latency && latency != -1) {
             tabListEntry.setLatency(latency);
         }
 
@@ -135,14 +144,32 @@ public class TabListUtil {
                     }
                 }
             }
-            // 更新 tabListEntry
-            for (TabListEntry tabListEntry : tabList.getEntries()) {
-                llsManager.server.getPlayer(tabListEntry.getProfile().getName()).ifPresentOrElse(
-                        itemPlayer -> {
-                            updateTabListEntry(tabListEntry, toPlayer, itemPlayer);
-                        },
-                        () -> tabList.removeEntry(tabListEntry.getProfile().getId())
-                );
+            synchronized (lastLeftPlayers){    // 更新 tabListEntry
+                for (TabListEntry tabListEntry : tabList.getEntries()) {
+                    String itemPlayerName = tabListEntry.getProfile().getName();
+                    Optional<Player> optionalPlayer = llsManager.server.getPlayer(itemPlayerName);
+                    boolean itemShouldBeRemoved = false;
+                    for (Player leftPlayer : lastLeftPlayers) {
+                        if (Objects.equals(leftPlayer.getGameProfile().getName(), itemPlayerName)) {
+                            itemShouldBeRemoved = true;
+                            lastLeftPlayers.remove(leftPlayer);
+                        }
+                    }
+                    if (optionalPlayer.isPresent()) {
+                        Player itemPlayer = optionalPlayer.get();
+                        updateTabListEntry(tabListEntry, toPlayer, itemPlayer);
+                    } else if (itemShouldBeRemoved) {
+                        tabList.removeEntry(tabListEntry.getProfile().getId());
+                    }
+                    /*llsManager.server.getPlayer(tabListEntry.getProfile().getName()).ifPresentOrElse(
+                            itemPlayer -> {
+                                updateTabListEntry(tabListEntry, toPlayer, itemPlayer);
+                            },
+                            () -> tabList.removeEntry(tabListEntry.getProfile().getId())
+                    );*/
+
+                    lastLeftPlayers.clear();
+                }
             }
         }
         //}

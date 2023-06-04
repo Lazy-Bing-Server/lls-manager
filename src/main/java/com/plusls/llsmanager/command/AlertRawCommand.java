@@ -21,6 +21,7 @@ public class AlertRawCommand {
 
     private static BrigadierCommand createBrigadierCommand(LlsManager llsManager) {
         LiteralCommandNode<CommandSource> alertRawNode = LiteralArgumentBuilder.<CommandSource>literal("alertraw")
+                .requires(commandSource -> commandSource.hasPermission("lls-manager.admin"))
                 .then(LiteralArgumentBuilder.<CommandSource>literal("@a")
                         .then(getSendComponentBuilder(llsManager).executes(
                                 context -> {
@@ -50,6 +51,6 @@ public class AlertRawCommand {
     }
 
     private static RequiredArgumentBuilder<CommandSource, String> getSendComponentBuilder(LlsManager llsManager) {
-        return RequiredArgumentBuilder.<CommandSource, String>argument("component", StringArgumentType.greedyString());
+        return RequiredArgumentBuilder.argument("component", StringArgumentType.greedyString());
     }
 }
