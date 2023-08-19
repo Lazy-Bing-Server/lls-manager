@@ -123,7 +123,11 @@ public class Config extends AbstractConfig<Config.ConfigData> {
     }
 
     public boolean getShowPlayerChatInConsole() {
-        return config.showAllPlayerInTabList;
+        return config.showPlayerChatInConsole;
+    }
+
+    public boolean getMcdrCommandSuggestion() {
+        return config.mcdrCommandSuggestion;
     }
 
     public boolean getWhitelist() {
@@ -149,7 +153,7 @@ public class Config extends AbstractConfig<Config.ConfigData> {
         // 是否在 TabList 显示子服玩家
         private boolean showAllPlayerInTabList = false;
         // 是否在控制台中显示聊天信息
-        private boolean showPlayerChatInConsole = false;
+        private boolean showPlayerChatInConsole = true;
         // 是否同步聊天信息
         private boolean bridgeChatMessage = false;
         // 是否同步玩家加入信息
@@ -164,6 +168,8 @@ public class Config extends AbstractConfig<Config.ConfigData> {
         private String defaultChannel = LlsPlayer.SERVER;
         // 离线认证服务器名字
         private String authServerName = "lls-auth";
+
+        private boolean mcdrCommandSuggestion = true;
 
 
 

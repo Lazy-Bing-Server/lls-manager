@@ -18,7 +18,10 @@ public class WhitelistHandler {
 
     public static void init(LlsManager llsManager) {
         llsManager.server.getEventManager().register(llsManager, llsManager.injector.getInstance(WhitelistHandler.class));
-        llsManager.commandManager.register(llsManager.injector.getInstance(LlsWhitelistCommand.class).createBrigadierCommand());
+        if (llsManager.config.getWhitelist()) {
+            llsManager.commandManager.register(llsManager.injector.getInstance(LlsWhitelistCommand.class).createBrigadierCommand());
+            llsManager.commandManager.register(llsManager.injector.getInstance(LlsBlacklistCommand.class).createBrigadierCommand());
+        }
     }
 
     @Subscribe(order =  PostOrder.EARLY)

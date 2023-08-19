@@ -52,6 +52,7 @@ dependencies {
     implementation "io.grpc:grpc-stub:${project.grpc_version}"
 //    implementation "io.grpc:grpc-netty-shaded:${project.grpc_version}"
     compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
+    implementation "com.alibaba.fastjson2:fastjson2:2.0.19"
 
 }
 

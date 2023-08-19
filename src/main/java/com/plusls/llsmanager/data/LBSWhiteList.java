@@ -1,9 +1,10 @@
 package com.plusls.llsmanager.data;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,7 +23,7 @@ public class LBSWhiteList extends AbstractConfig<LBSWhiteList.WhitelistData> {
         public String whiteListBlockReason = "";
         public ConcurrentSkipListSet<String> whiteList = new ConcurrentSkipListSet<>();
         public boolean enableBlackList = true;
-        public ConcurrentHashMap<String, @Nullable String> blackList = new ConcurrentHashMap<>();
+        public ConcurrentHashMap<String, String> blackList = new ConcurrentHashMap<>();
     }
 
     public boolean isWhiteListEnabled() {
@@ -41,8 +42,8 @@ public class LBSWhiteList extends AbstractConfig<LBSWhiteList.WhitelistData> {
         return whitelistData.blackList.containsKey(uuid.toString());
     }
 
-    private Component getReasonComponent(String reason, Component defaultReason) {
-        if (reason.equals("")) {
+    public @Nullable Component getReasonComponent(String reason, @Nullable Component defaultReason) {
+        if (reason.isEmpty()) {
             return defaultReason;
         }
         try {
@@ -59,6 +60,13 @@ public class LBSWhiteList extends AbstractConfig<LBSWhiteList.WhitelistData> {
         );
     }
 
+    public @Nullable Component getPlayerBannedReason(UUID uuid, @Nullable Component defaultReason) {
+        return getReasonComponent(
+                Objects.requireNonNull(whitelistData.blackList.get(uuid.toString())),
+                defaultReason
+        );
+    }
+
     public Component getWhiteListBlockReason(){
         return getReasonComponent(
                 whitelistData.whiteListBlockReason,
@@ -71,8 +79,12 @@ public class LBSWhiteList extends AbstractConfig<LBSWhiteList.WhitelistData> {
             return false;
         } else {
             whitelistData.whiteList.add(uuid.toString());
-            return true;
+            return save();
         }
+    }
+
+    public boolean blacklistAdd(UUID uuid, Component reason) {
+        return blacklistAdd(uuid, GsonComponentSerializer.gson().serialize(reason));
     }
 
     public boolean blacklistAdd(UUID uuid, String reason) {
@@ -80,12 +92,48 @@ public class LBSWhiteList extends AbstractConfig<LBSWhiteList.WhitelistData> {
             return false;
         } else {
             whitelistData.blackList.put(uuid.toString(), reason);
-            return true;
+            return save();
+        }
+    }
+
+    public boolean whitelistRemove(UUID uuid) {
+        if (!isPlayerWhitelisted(uuid)) {
+            return false;
+        } else {
+            whitelistData.whiteList.remove(uuid.toString());
+            return save();
+        }
+    }
+
+    public boolean blacklistRemove(UUID uuid) {
+        if (!isPlayerBlacklisted(uuid)) {
+            return false;
+        } else {
+            whitelistData.blackList.remove(uuid.toString());
+            return save();
         }
     }
 
     public boolean blacklistAdd(UUID uuid) {
-        return blacklistAdd(uuid, "");
+        return blacklistAdd(uuid, Component.translatable("multiplayer.disconnect.banned").color(NamedTextColor.RED));
+    }
+
+    public boolean setWhitelistStatus(boolean status) {
+        if (whitelistData.enableWhiteList == status) {
+            return false;
+        } else {
+            whitelistData.enableWhiteList = status;
+            return save();
+        }
+    }
+
+    public boolean setBlacklistStatus(boolean status) {
+        if (whitelistData.enableBlackList == status) {
+            return false;
+        } else {
+            whitelistData.enableBlackList = status;
+            return save();
+        }
     }
 
     @Override

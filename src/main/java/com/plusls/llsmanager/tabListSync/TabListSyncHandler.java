@@ -17,7 +17,7 @@ public class TabListSyncHandler {
     public static void init(LlsManager llsManager) {
         llsManager.server.getEventManager().register(llsManager, llsManager.injector.getInstance(TabListSyncHandler.class));
         llsManager.server.getScheduler().buildTask(llsManager, llsManager.injector.getInstance(TabListSyncHandler.class)::updateTabList)
-                .repeat(50L, TimeUnit.MILLISECONDS).schedule();
+                .repeat(1L, TimeUnit.SECONDS).schedule();
     }
 
     public void updateTabList() {

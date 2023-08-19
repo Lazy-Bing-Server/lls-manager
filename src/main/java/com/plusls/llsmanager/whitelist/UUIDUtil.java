@@ -12,12 +12,43 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.MessageFormat;
 import java.util.UUID;
 
+import com.plusls.llsmanager.LlsManager;
+
 public class UUIDUtil {
-    public static @Nullable UUID getOnlineUUIDFromUserName(String userName) throws IOException {
-        URL url = new URL(String.format("https://api.mojang.com/users/profiles/minecraft/%s", userName));
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+    public static LlsManager llsManager;
+
+    public static @Nullable UUID getUUID(LlsManager manager, String username_uuid) {
+        llsManager = manager;
+        manager.server.getConfiguration().isOnlineMode();
+        try {
+            return UUID.fromString(username_uuid);
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            if (manager.server.getConfiguration().isOnlineMode()){
+                return getOnlineUUIDFromUserName(username_uuid);
+            } else {
+                return getOfflineUUIDFromUserName(username_uuid);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static @Nullable UUID getOnlineUUIDFromUserName(String userName) {
+        HttpURLConnection conn;
+        try {
+            URL url = new URL(String.format("https://api.mojang.com/users/profiles/minecraft/%s", userName));
+            conn = (HttpURLConnection) url.openConnection();
+        } catch (IOException ignored) {
+            llsManager.logger.error("Error occurred: ", ignored);
+            return null;
+        }
         try {
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(15000);
@@ -38,6 +69,9 @@ public class UUIDUtil {
                     return profile.getUUID();
                 }
             }
+        } catch (Exception e) {
+            llsManager.logger.error("Error occurred while querying online UUID: ", e);
+            return null;
         } finally {
             conn.disconnect();
         }
@@ -47,15 +81,9 @@ public class UUIDUtil {
     public @Nullable static UUID getOfflineUUIDFromUserName(String userName) {
         LlsManager llsManager = LlsManager.getInstance();
         try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            byte[] bytes = md5.digest(String.format("OfflinePlayer:%s", userName).getBytes());
-            bytes[6] &= 0x0F;
-            bytes[6] |= 0x30;
-            bytes[8] &= 0x3F;
-            bytes[8] |= 0x80;
-            return UUID.fromString(byteArrayToHex(bytes));
-        } catch (NoSuchAlgorithmException e) {
-            llsManager.logger.error("No such algo in Message digest", e);
+            return UUID.nameUUIDFromBytes(("OfflinePlayer:" + userName).getBytes());
+        } catch (IllegalArgumentException e) {
+            llsManager.logger.error("Error while getting offline UUID", e);
         }
         return null;
     }
@@ -73,7 +101,9 @@ public class UUIDUtil {
         public String id;
 
         public UUID getUUID() {
-            return UUID.fromString(id);
+            return UUID.fromString(id.replaceAll(
+                    "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+                    "$1-$2-$3-$4-$5"));
         }
     }
 }

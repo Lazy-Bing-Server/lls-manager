@@ -17,6 +17,7 @@ import com.plusls.llsmanager.handler.DisconnectEventHandler;
 import com.plusls.llsmanager.handler.PlayerChatEventHandler;
 import com.plusls.llsmanager.handler.PlayerChooseInitialServerEventHandler;
 import com.plusls.llsmanager.handler.ServerConnectedEventHandler;
+import com.plusls.llsmanager.mcdrCommand.MCDRCommandHandler;
 import com.plusls.llsmanager.offlineAuth.OfflineAuthHandler;
 import com.plusls.llsmanager.seen.SeenHandler;
 import com.plusls.llsmanager.serverGroup.LlsServerGroupCommand;
@@ -170,6 +171,7 @@ public class LlsManager {
         ServerConnectedEventHandler.init(this);
         PlayerChatEventHandler.init(this);
         DisconnectEventHandler.init(this);
+        MCDRCommandHandler.init(this);
 
         LlsChannelCommand.register(this);
         LlsPlayerCommand.register(this);

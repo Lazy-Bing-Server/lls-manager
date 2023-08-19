@@ -119,3 +119,5 @@ run/
 .classpath
 .project
 .settings
+
+after_build.ps1
