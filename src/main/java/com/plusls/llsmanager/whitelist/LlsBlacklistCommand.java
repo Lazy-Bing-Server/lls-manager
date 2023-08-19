@@ -18,7 +18,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import javax.annotation.Nullable;
-import javax.sound.midi.spi.SoundbankReader;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 

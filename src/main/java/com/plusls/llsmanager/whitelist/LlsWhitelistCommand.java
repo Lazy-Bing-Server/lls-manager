@@ -2,37 +2,24 @@ package com.plusls.llsmanager.whitelist;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.plusls.llsmanager.LlsManager;
 import com.plusls.llsmanager.command.Command;
-import com.plusls.llsmanager.data.LlsPlayer;
-import com.plusls.llsmanager.util.LoadPlayerFailException;
-import com.plusls.llsmanager.util.PlayerNotFoundException;
 import com.plusls.llsmanager.util.TextUtil;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
-import javax.naming.Name;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 @Singleton
 public class LlsWhitelistCommand {

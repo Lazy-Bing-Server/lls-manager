@@ -114,10 +114,6 @@ public class LBSWhiteList extends AbstractConfig<LBSWhiteList.WhitelistData> {
         }
     }
 
-    public boolean blacklistAdd(UUID uuid) {
-        return blacklistAdd(uuid, Component.translatable("multiplayer.disconnect.banned").color(NamedTextColor.RED));
-    }
-
     public boolean setWhitelistStatus(boolean status) {
         if (whitelistData.enableWhiteList == status) {
             return false;
